@@ -1,0 +1,17 @@
+#PYTHON 
+
+**/__pycache__/
+
+#EXPERIMENTS
+
+/cnn/Search*
+/Search* 
+
+#DATA
+/data
+
+
+#VS CODE 
+
+.vs
+ConvSearch.pyproj
