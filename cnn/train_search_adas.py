@@ -118,6 +118,11 @@ def main():
     else:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
         is_multi_gpu = True
+        
+    if args.layers <= 2: 
+        logging.info('Minimmum number of layers is 2')
+        sys.exit(1)
+        
     np.random.seed(args.seed)
     cudnn.benchmark = True
     torch.manual_seed(args.seed)
@@ -260,7 +265,7 @@ def main():
         errors_dict['train_loss'].append(train_obj)
         errors_dict['valid_acc_1'].append(valid_acc_1)
         errors_dict['valid_loss'].append(valid_obj)
-
+        
         # update network metrics (knowledge gain, condition mapping, etc)
         if args.adas:
             # AdaS: update learning rates
@@ -451,25 +456,39 @@ def write_data(epoch, net_metrics, lr_metrics, weights_normal, weights_reduce, g
     metrics_df = pd.DataFrame(data=perform_stat)
     metrics_df.to_excel(metrics_path)
 
-    # weights
+    # alpha weights
     # normal
     arch_stat['normal_none_epoch{}'.format(epoch)] = weights_normal[:, 0]
-    arch_stat['normal_max_epoch{}'.format(epoch)] = weights_normal[:, 1]
-    arch_stat['normal_avg_epoch{}'.format(epoch)] = weights_normal[:, 2]
-    arch_stat['normal_skip_epoch{}'.format(epoch)] = weights_normal[:, 3]
-    arch_stat['normal_sep_3_epoch{}'.format(epoch)] = weights_normal[:, 4]
-    arch_stat['normal_sep_5_epoch{}'.format(epoch)] = weights_normal[:, 5]
-    arch_stat['normal_dil_3_epoch{}'.format(epoch)] = weights_normal[:, 6]
-    arch_stat['normal_dil_5_epoch{}'.format(epoch)] = weights_normal[:, 7]
+    arch_stat['normal_skip_connect_epoch{}'.format(epoch)] = weights_normal[:, 1]
+    arch_stat['normal_sep_conv1_3x3_epoch{}'.format(epoch)] = weights_normal[:, 2]
+    arch_stat['normal_sep_conv1_5x5_epoch{}'.format(epoch)] = weights_normal[:, 3]
+    arch_stat['normal_sep_conv1_7x7_epoch{}'.format(epoch)] = weights_normal[:, 4]
+    arch_stat['normal_sep_conv2_3x3_epoch{}'.format(epoch)] = weights_normal[:, 5]
+    arch_stat['normal_sep_conv2_5x5_epoch{}'.format(epoch)] = weights_normal[:, 6]
+    arch_stat['normal_sep_conv2_7x7_epoch{}'.format(epoch)] = weights_normal[:, 7]
+    arch_stat['normal_sep_conv3_3x3_epoch{}'.format(epoch)] = weights_normal[:, 8]
+    arch_stat['normal_sep_conv3_5x5_epoch{}'.format(epoch)] = weights_normal[:, 9]
+    arch_stat['normal_sep_conv3_7x7_epoch{}'.format(epoch)] = weights_normal[:, 10]
+    arch_stat['normal_sep_conv4_3x3_epoch{}'.format(epoch)] = weights_normal[:, 11]
+    arch_stat['normal_sep_conv4_5x5_epoch{}'.format(epoch)] = weights_normal[:, 12]
+    arch_stat['normal_sep_conv4_7x7_epoch{}'.format(epoch)] = weights_normal[:, 13]
+    
     # reduce
     arch_stat['reduce_none_epoch{}'.format(epoch)] = weights_reduce[:, 0]
-    arch_stat['reduce_max_epoch{}'.format(epoch)] = weights_reduce[:, 1]
-    arch_stat['reduce_avg_epoch{}'.format(epoch)] = weights_reduce[:, 2]
-    arch_stat['reduce_skip_epoch{}'.format(epoch)] = weights_reduce[:, 3]
-    arch_stat['reduce_sep_3_epoch{}'.format(epoch)] = weights_reduce[:, 4]
-    arch_stat['reduce_sep_5_epoch{}'.format(epoch)] = weights_reduce[:, 5]
-    arch_stat['reduce_dil_3_epoch{}'.format(epoch)] = weights_reduce[:, 6]
-    arch_stat['reduce_dil_5_epoch{}'.format(epoch)] = weights_reduce[:, 7]
+    arch_stat['reduce_skip_connect_epoch{}'.format(epoch)] = weights_reduce[:, 1]
+    arch_stat['reduce_sep_conv1_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 2]
+    arch_stat['reduce_sep_conv1_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 3]
+    arch_stat['reduce_sep_conv1_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 4]
+    arch_stat['reduce_sep_conv2_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 5]
+    arch_stat['reduce_sep_conv2_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 6]
+    arch_stat['reduce_sep_conv2_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 7]
+    arch_stat['reduce_sep_conv3_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 8]
+    arch_stat['reduce_sep_conv3_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 9]
+    arch_stat['reduce_sep_conv3_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 10]
+    arch_stat['reduce_sep_conv4_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 11]
+    arch_stat['reduce_sep_conv4_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 12]
+    arch_stat['reduce_sep_conv4_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 13]
+
     # write weights data to xls file
     weights_df = pd.DataFrame(data=arch_stat)
     weights_df.to_excel(weights_path)
