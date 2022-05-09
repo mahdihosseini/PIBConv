@@ -17,17 +17,17 @@ OPS = {
     'none': lambda C, stride, affine: Zero(stride),
     'skip_connect': lambda C, stride, affine: Identity() if stride == 1 else FactorizedReduce(C, C, affine=affine),
     'sep_conv1_3x3': lambda C, stride, affine: SepConvInverted1 (C, C, 3, stride, 1, affine=affine),
-    'sep_conv1_5x5': lambda C, stride, affine: SepConvInverted1 (C, C, 5, stride, 2, affine=affine),
-    'sep_conv1_7x7': lambda C, stride, affine: SepConvInverted1 (C, C, 7, stride, 3, affine=affine),
-    'sep_conv2_3x3': lambda C, stride, affine: SepConvInverted2 (C, C, 3, stride, 1, affine=affine),
-    'sep_conv2_5x5': lambda C, stride, affine: SepConvInverted2 (C, C, 5, stride, 2, affine=affine),
-    'sep_conv2_7x7': lambda C, stride, affine: SepConvInverted2 (C, C, 7, stride, 3, affine=affine),
-    'sep_conv3_3x3': lambda C, stride, affine: SepConvInverted3 (C, C, 3, stride, 1, affine=affine),
-    'sep_conv3_5x5': lambda C, stride, affine: SepConvInverted3 (C, C, 5, stride, 2, affine=affine),
-    'sep_conv3_7x7': lambda C, stride, affine: SepConvInverted3 (C, C, 7, stride, 3, affine=affine),
-    'sep_conv4_3x3': lambda C, stride, affine: SepConvInverted4 (C, C, 3, stride, 1, affine=affine),
-    'sep_conv4_5x5': lambda C, stride, affine: SepConvInverted4 (C, C, 5, stride, 2, affine=affine),
-    'sep_conv4_7x7': lambda C, stride, affine: SepConvInverted4 (C, C, 7, stride, 3, affine=affine),
+    #'sep_conv1_5x5': lambda C, stride, affine: SepConvInverted1 (C, C, 5, stride, 2, affine=affine),
+    #'sep_conv1_7x7': lambda C, stride, affine: SepConvInverted1 (C, C, 7, stride, 3, affine=affine),
+    #'sep_conv2_3x3': lambda C, stride, affine: SepConvInverted2 (C, C, 3, stride, 1, affine=affine),
+    #'sep_conv2_5x5': lambda C, stride, affine: SepConvInverted2 (C, C, 5, stride, 2, affine=affine),
+    #'sep_conv2_7x7': lambda C, stride, affine: SepConvInverted2 (C, C, 7, stride, 3, affine=affine),
+    #'sep_conv3_3x3': lambda C, stride, affine: SepConvInverted3 (C, C, 3, stride, 1, affine=affine),
+    #'sep_conv3_5x5': lambda C, stride, affine: SepConvInverted3 (C, C, 5, stride, 2, affine=affine),
+    #'sep_conv3_7x7': lambda C, stride, affine: SepConvInverted3 (C, C, 7, stride, 3, affine=affine),
+    #'sep_conv4_3x3': lambda C, stride, affine: SepConvInverted4 (C, C, 3, stride, 1, affine=affine),
+    #'sep_conv4_5x5': lambda C, stride, affine: SepConvInverted4 (C, C, 5, stride, 2, affine=affine),
+    #'sep_conv4_7x7': lambda C, stride, affine: SepConvInverted4 (C, C, 7, stride, 3, affine=affine),
 }
 class LayerNorm(nn.Module):
     """ LayerNorm that supports two data formats: channels_last (default) or channels_first. 
@@ -41,13 +41,11 @@ class LayerNorm(nn.Module):
         self.bias = nn.Parameter(torch.zeros(normalized_shape))
         self.eps = eps
         self.data_format = data_format
-        if self.data_format not in ["channels_last", "channels_first","channels_second"]:
+        if self.data_format not in ["channels_last", "channels_first","channels_first"]:
             raise NotImplementedError 
         self.normalized_shape = (normalized_shape, )
-        print(self.normalized_shape)
     
     def forward(self, x):
-        print(x.shape)
         if self.data_format == "channels_last":
             return F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
         elif self.data_format == "channels_first":
@@ -56,22 +54,6 @@ class LayerNorm(nn.Module):
             x = (x - u) / torch.sqrt(s + self.eps)
             x = self.weight[:, None, None] * x + self.bias[:, None, None]
             return x
-        elif self.data_format == "channels_second": 
-            print(self.normalized_shape)
-            x = x.permute((0,2,3,1))
-            x = F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
-            x = x.permute((0,3,1,2))
-            print(x.shape)
-            return x
-        '''
-        elif self.data_format== "channels_second": 
-            u = x.mean(2, keepdim=True)
-            s = (x - u).pow(2).mean(2, keepdim=True)
-            x = (x - u) / torch.sqrt(s + self.eps)
-            print("dsad",self.weight[:,None,None].shape)
-            x = self.weight[:, None, None] * x + self.bias[:, None, None]
-            return x
-        '''
             
 
 class ReLUConvBN(nn.Module):
@@ -132,7 +114,7 @@ class LNormReduce (nn.Module):
         super(LNormReduce, self).__init__()
 
         self.op = nn.Sequential(
-            LayerNorm(C_in,eps=1e-5,data_format="channels_second"),
+            LayerNorm(C_in,eps=1e-5,data_format="channels_first"),
             nn.Conv2d(C_in, C_in, kernel_size=2,stride=2, groups=C_in, bias=False)
         )
 
@@ -148,13 +130,13 @@ class SepConvInverted1 (nn.Module):
 
         if stride !=1: 
             layers.extend ([
-                LayerNorm(C_in,eps=1e-5,data_format="channels_second"),
+                LayerNorm(C_in,eps=1e-5,data_format="channels_first"),
                 nn.Conv2d(C_in, C_in, kernel_size=2,stride=2, bias=False)
             ])
 
         layers.extend ([
             nn.Conv2d(C_in, C_in, kernel_size=kernel_size, stride=1, padding=padding, groups=C_in, bias=False),
-            LayerNorm(C_in,eps=1e-5,data_format="channels_second"),
+            LayerNorm(C_in,eps=1e-5,data_format="channels_first"),
             nn.Conv2d(C_in, C_in * 4, kernel_size=1, padding=0, bias=False),
             nn.GELU(),
             nn.Conv2d(C_in * 4, C_out, kernel_size=1,padding=0, bias=False),
@@ -163,7 +145,6 @@ class SepConvInverted1 (nn.Module):
         self.op = nn.Sequential(*layers)
         
     def forward(self, x):
-        print(x.shape)
         return self.op(x)
 
 
@@ -176,12 +157,12 @@ class SepConvInverted2 (nn.Module):
 
         if stride !=1: 
             layers.extend ([
-                LayerNorm(C_in,eps=1e-5,data_format="channels_second"),
+                LayerNorm(C_in,eps=1e-5,data_format="channels_first"),
                 nn.Conv2d(C_in, C_in, kernel_size=2,stride=2, bias=False)
             ])
 
         layers.extend([
-            LayerNorm(C_in,eps=1e-5,data_format="channels_second"),
+            LayerNorm(C_in,eps=1e-5,data_format="channels_first"),
             nn.Conv2d(C_in, C_in, kernel_size=kernel_size, stride=1, padding=padding, groups=C_in, bias=False),
             nn.Conv2d(C_in, C_in * 4, kernel_size=1, padding=0, bias=False),
             nn.GELU(),
@@ -202,7 +183,7 @@ class SepConvInverted3 (nn.Module):
 
         if stride !=1: 
             layers.extend ([
-                LayerNorm(C_in,eps=1e-5,data_format="channels_second"),
+                LayerNorm(C_in,eps=1e-5,data_format="channels_first"),
                 nn.Conv2d(C_in, C_in, kernel_size=2,stride=2, bias=False)
             ])
 
@@ -228,7 +209,7 @@ class SepConvInverted4 (nn.Module):
 
         if stride !=1: 
             layers.extend ([
-                LayerNorm(C_in,eps=1e-5,data_format="channels_second"),
+                LayerNorm(C_in,eps=1e-5,data_format="channels_first"),
                 nn.Conv2d(C_in, C_in, kernel_size=2,stride=2, bias=False)
             ])
 
@@ -236,7 +217,7 @@ class SepConvInverted4 (nn.Module):
         layers.extend([
             nn.Conv2d(C_in, C_in, kernel_size=kernel_size, stride=1, padding=padding, groups=C_in, bias=False),
             nn.Conv2d(C_in, C_in * 4, kernel_size=1, padding=0, bias=False),
-            LayerNorm(C_in * 4,eps=1e-5,data_format="channels_second"),
+            LayerNorm(C_in * 4,eps=1e-5,data_format="channels_first"),
             nn.Conv2d(C_in * 4, C_out, kernel_size=1,padding=0, bias=False),
             ])
         self.op = nn.Sequential(*layers)
@@ -278,7 +259,7 @@ class FactorizedReduce(nn.Module):
                                 stride=2, padding=0, bias=False)
         self.conv_2 = nn.Conv2d(C_in, C_out // 2, 1,
                                 stride=2, padding=0, bias=False)
-        self.ln = LayerNorm(C_in,eps=1e-5,data_format="channels_second")
+        #self.ln = LayerNorm(C_in,eps=1e-5,data_format="channels_first")
         self.bn = nn.BatchNorm2d(C_out, affine=affine)
 
     def forward(self, x):

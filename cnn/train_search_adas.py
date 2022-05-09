@@ -230,9 +230,9 @@ def main():
     performance_statistics = {}
     arch_statistics = {}
     genotype_statistics = {}
-    metrics_path = '../save_data/metrics_stat_{}.xlsx'.format(args.file_name)
-    weights_path = '../save_data/weights_stat_{}.xlsx'.format(args.file_name)
-    genotypes_path = '../save_data/genotypes_stat_{}.xlsx'.format(args.file_name)
+    metrics_path = r'../save_data/metrics_stat_{}.xlsx'.format(args.file_name)
+    weights_path = r'../save_data/weights_stat_{}.xlsx'.format(args.file_name)
+    genotypes_path = r'../save_data/genotypes_stat_{}.xlsx'.format(args.file_name)
 
     errors_dict = {'train_acc_1': [], 'train_loss': [], 'valid_acc_1': [], 'valid_loss': []}
 
@@ -437,12 +437,14 @@ def write_data(epoch, net_metrics, lr_metrics, weights_normal, weights_reduce, g
     if epoch % 5 == 0 or epoch == args.epochs - 1:
         genotype_stat['epoch_{}'.format(epoch)] = [genotype]
         genotypes_df = pd.DataFrame(data=genotype_stat)
+        if os.path.isdir(genotypes_path) is not True: 
+             os.mkdir(genotypes_path)
         genotypes_df.to_excel(genotypes_path)
 
     # io metrics
     perform_stat['S_epoch_{}'.format(epoch)] = net_metrics
-    # perform_stat['out_S_epoch_{}'.format(epoch)] = net_metrics.output_channel_S
-    # perform_stat['fc_S_epoch_{}'.format(epoch)] = net_metrics.fc_S
+    perform_stat['out_S_epoch_{}'.format(epoch)] = net_metrics.output_channel_S
+    perform_stat['fc_S_epoch_{}'.format(epoch)] = net_metrics.fc_S
     # perform_stat['in_rank_epoch_{}'.format(epoch)] = net_metrics.input_channel_rank
     # perform_stat['out_rank_epoch_{}'.format(epoch)] = net_metrics.output_channel_rank
     # perform_stat['fc_rank_epoch_{}'.format(epoch)] = net_metrics.fc_rank
@@ -461,33 +463,33 @@ def write_data(epoch, net_metrics, lr_metrics, weights_normal, weights_reduce, g
     arch_stat['normal_none_epoch{}'.format(epoch)] = weights_normal[:, 0]
     arch_stat['normal_skip_connect_epoch{}'.format(epoch)] = weights_normal[:, 1]
     arch_stat['normal_sep_conv1_3x3_epoch{}'.format(epoch)] = weights_normal[:, 2]
-    arch_stat['normal_sep_conv1_5x5_epoch{}'.format(epoch)] = weights_normal[:, 3]
-    arch_stat['normal_sep_conv1_7x7_epoch{}'.format(epoch)] = weights_normal[:, 4]
-    arch_stat['normal_sep_conv2_3x3_epoch{}'.format(epoch)] = weights_normal[:, 5]
-    arch_stat['normal_sep_conv2_5x5_epoch{}'.format(epoch)] = weights_normal[:, 6]
-    arch_stat['normal_sep_conv2_7x7_epoch{}'.format(epoch)] = weights_normal[:, 7]
-    arch_stat['normal_sep_conv3_3x3_epoch{}'.format(epoch)] = weights_normal[:, 8]
-    arch_stat['normal_sep_conv3_5x5_epoch{}'.format(epoch)] = weights_normal[:, 9]
-    arch_stat['normal_sep_conv3_7x7_epoch{}'.format(epoch)] = weights_normal[:, 10]
-    arch_stat['normal_sep_conv4_3x3_epoch{}'.format(epoch)] = weights_normal[:, 11]
-    arch_stat['normal_sep_conv4_5x5_epoch{}'.format(epoch)] = weights_normal[:, 12]
-    arch_stat['normal_sep_conv4_7x7_epoch{}'.format(epoch)] = weights_normal[:, 13]
+    #arch_stat['normal_sep_conv1_5x5_epoch{}'.format(epoch)] = weights_normal[:, 3]
+    #arch_stat['normal_sep_conv1_7x7_epoch{}'.format(epoch)] = weights_normal[:, 4]
+    #arch_stat['normal_sep_conv2_3x3_epoch{}'.format(epoch)] = weights_normal[:, 5]
+    #arch_stat['normal_sep_conv2_5x5_epoch{}'.format(epoch)] = weights_normal[:, 6]
+    #arch_stat['normal_sep_conv2_7x7_epoch{}'.format(epoch)] = weights_normal[:, 7]
+    #arch_stat['normal_sep_conv3_3x3_epoch{}'.format(epoch)] = weights_normal[:, 8]
+    #arch_stat['normal_sep_conv3_5x5_epoch{}'.format(epoch)] = weights_normal[:, 9]
+    #arch_stat['normal_sep_conv3_7x7_epoch{}'.format(epoch)] = weights_normal[:, 10]
+    #arch_stat['normal_sep_conv4_3x3_epoch{}'.format(epoch)] = weights_normal[:, 11]
+    #arch_stat['normal_sep_conv4_5x5_epoch{}'.format(epoch)] = weights_normal[:, 12]
+    #arch_stat['normal_sep_conv4_7x7_epoch{}'.format(epoch)] = weights_normal[:, 13]
     
     # reduce
     arch_stat['reduce_none_epoch{}'.format(epoch)] = weights_reduce[:, 0]
     arch_stat['reduce_skip_connect_epoch{}'.format(epoch)] = weights_reduce[:, 1]
     arch_stat['reduce_sep_conv1_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 2]
-    arch_stat['reduce_sep_conv1_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 3]
-    arch_stat['reduce_sep_conv1_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 4]
-    arch_stat['reduce_sep_conv2_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 5]
-    arch_stat['reduce_sep_conv2_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 6]
-    arch_stat['reduce_sep_conv2_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 7]
-    arch_stat['reduce_sep_conv3_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 8]
-    arch_stat['reduce_sep_conv3_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 9]
-    arch_stat['reduce_sep_conv3_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 10]
-    arch_stat['reduce_sep_conv4_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 11]
-    arch_stat['reduce_sep_conv4_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 12]
-    arch_stat['reduce_sep_conv4_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 13]
+    #arch_stat['reduce_sep_conv1_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 3]
+    #arch_stat['reduce_sep_conv1_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 4]
+    #arch_stat['reduce_sep_conv2_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 5]
+    #arch_stat['reduce_sep_conv2_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 6]
+    #arch_stat['reduce_sep_conv2_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 7]
+    #arch_stat['reduce_sep_conv3_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 8]
+    #arch_stat['reduce_sep_conv3_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 9]
+    #arch_stat['reduce_sep_conv3_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 10]
+    #arch_stat['reduce_sep_conv4_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 11]
+    #arch_stat['reduce_sep_conv4_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 12]
+    #arch_stat['reduce_sep_conv4_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 13]
 
     # write weights data to xls file
     weights_df = pd.DataFrame(data=arch_stat)

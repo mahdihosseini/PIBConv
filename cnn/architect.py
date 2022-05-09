@@ -33,13 +33,13 @@ class Architect(object):
         loss = self.criterion(logits, target)
 
         arch_parameters = self.model.module.arch_parameters() if self.is_multi_gpu else self.model.arch_parameters()
-        arch_theta = _concat(arch_parameters).detach()
+        arch_theta = _concat(arch_parameters).data
 
         arch_parameters = self.model.module.arch_parameters() if self.is_multi_gpu else self.model.arch_parameters()
         arch_params = list(map(id, arch_parameters))
         model_parameters = self.model.module.parameters() if self.is_multi_gpu else self.model.parameters()
         model_params = filter(lambda p: id(p) not in arch_params, model_parameters) 
-        model_theta = _concat(model_params).detach()
+        model_theta = _concat(model_params).data
         
         arch_parameters = self.model.module.arch_parameters() if self.is_multi_gpu else self.model.arch_parameters()
         arch_params = list(map(id, arch_parameters))
@@ -57,12 +57,6 @@ class Architect(object):
         model_params = list(filter(lambda p: id(p) not in arch_params, model_parameters))         
         # using gumbel-softmax:
         # for unused ops there will be no gradient and this needs to be handled
-        # count=0
-        # for grad_i,theta_i in zip(torch.autograd.grad(loss, model_params,allow_unused=True), model_params):
-        #     if grad_i is None: 
-        #         print(theta_i,theta_i.shape)
-        #         print(count)
-        #     count+=1
         if self.gumbel:
             dtheta = _concat([grad_i + self.network_weight_decay * theta_i if grad_i is not None
                               else self.network_weight_decay * theta_i
@@ -73,6 +67,7 @@ class Architect(object):
             dtheta = _concat([grad_i + self.network_weight_decay * theta_i
                               for grad_i, theta_i in
                               zip(torch.autograd.grad(loss, model_params), model_params)])
+
         # Adas
         if self.adas:
             iteration_p = 0
@@ -142,12 +137,12 @@ class Architect(object):
             for v in unrolled_model_params:
                 if v.grad is not None:
                     # used operation by Gumbel-softmax
-                    vector.append(v.grad.detach())
+                    vector.append(v.grad.data)
                 else:
                     # unused operation by Gumbel-softmax
                     vector.append(torch.zeros_like(v))
         else:
-            vector = [v.grad.detach() for v in unrolled_model_params]
+            vector = [v.grad.data for v in unrolled_model_params]
         
         # Adas: use different etas for different w's
         if self.adas:
@@ -160,15 +155,15 @@ class Architect(object):
 
         # eqn(6)-eqn(8): dαLval(w',α)-(dαLtrain(w+,α)-dαLtrain(w-,α))/(2*epsilon)
         for g, ig in zip(dalpha, implicit_grads):
-            # g.detach().sub_(ig.detach(), alpha=eta)
-            g.detach().sub_(ig.detach())
+            # g.data.sub_(ig.data, alpha=eta)
+            g.data.sub_(ig.data)
         # update α
         arch_parameters = self.model.module.arch_parameters() if self.is_multi_gpu else self.model.arch_parameters()
         for v, g in zip(arch_parameters, dalpha):
             if v.grad is None:
-                v.grad = Variable(g.detach())
+                v.grad = Variable(g.data)
             else:
-                v.grad.detach().copy_(g.detach())
+                v.grad.data.copy_(g.data)
 
     def _construct_model_from_theta(self, theta):
         model_new = self.model.module.new() if self.is_multi_gpu else self.model.new()
@@ -213,14 +208,12 @@ class Architect(object):
         model_params = filter(lambda p: id(p) not in arch_params, model_parameters)
         # compute w+ in eqn(8): w+ = w + dw'Lval(w',α) * epsilon
         for p, v in zip(model_params, vector):
-            #print("kuk",p.detach())
-            p.detach().add(v, alpha=R)
-            
-        #print("kuk",model_params[0].detach())
+            p.data.add_(v, alpha=R)
         logits = self.model(input, self.gumbel)
         loss = self.criterion(logits, target)
         arch_parameters = self.model.module.arch_parameters() if self.is_multi_gpu else self.model.arch_parameters()
         grads_p = torch.autograd.grad(loss, arch_parameters)
+        
         # eqn(8): dαLtrain(w-,α) 
         arch_parameters = self.model.module.arch_parameters() if self.is_multi_gpu else self.model.arch_parameters()
         arch_params = list(map(id, arch_parameters))
@@ -228,7 +221,7 @@ class Architect(object):
         model_params = filter(lambda p: id(p) not in arch_params, model_parameters)
         # compute w- in eqn(8): w- = w - dw'Lval(w',α) * epsilon
         for p, v in zip(model_params, vector):
-            p.detach().sub_(v, alpha=2 * R)
+            p.data.sub_(v, alpha=2 * R)
         logits = self.model(input, self.gumbel)
         loss = self.criterion(logits, target)
         arch_parameters = self.model.module.arch_parameters() if self.is_multi_gpu else self.model.arch_parameters()
@@ -240,6 +233,6 @@ class Architect(object):
         model_parameters = self.model.module.parameters() if self.is_multi_gpu else self.model.parameters()
         model_params = filter(lambda p: id(p) not in arch_params, model_parameters)
         for p, v in zip(model_params, vector):
-            p.detach().add_(v, alpha=R)
+            p.data.add_(v, alpha=R)
 
         return [(x - y).div_(2 * R) for x, y in zip(grads_p, grads_n)]
