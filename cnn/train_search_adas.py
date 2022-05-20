@@ -1,4 +1,8 @@
+from operator import index
 import os
+#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "1,2,3"
+print("bruv")
 import sys
 import time
 import glob
@@ -7,6 +11,7 @@ import logging
 import argparse
 import numpy as np
 import pandas as pd
+import pickle
 import torch
 import torch.nn as nn
 import torch.utils
@@ -136,7 +141,7 @@ def main():
         train_transform, valid_transform = utils._data_transforms_cifar100(args)
         train_data = dset.CIFAR100(root=args.data, train=True, download=True, transform=train_transform)
     elif args.dataset == 'cifar10':
-        train_transform, valid_transform = utils._data_transforms_cifar10(args)
+        train_transform, valid_transform =  utils._data_transforms_cifar10(args)
         train_data = dset.CIFAR10(root=args.data, train=True, download=True, transform=train_transform)
     elif args.dataset == 'ADP-Release1':
         train_transform, valid_transform = utils._data_transforms_adp(args)
@@ -230,11 +235,29 @@ def main():
     performance_statistics = {}
     arch_statistics = {}
     genotype_statistics = {}
-    metrics_path = r'../save_data/metrics_stat_{}.xlsx'.format(args.file_name)
-    weights_path = r'../save_data/weights_stat_{}.xlsx'.format(args.file_name)
-    genotypes_path = r'../save_data/genotypes_stat_{}.xlsx'.format(args.file_name)
+    
+    index = 0
+    dir_path=r'../save_data'
+ 
+    while(os.path.isdir(dir_path+str(index))):
+        index += 1
+        print(dir_path+str(index))
+        
+    
+    dir_path=dir_path+str(index)
+    
+    #make the new dir without overwriting previous data
+    os.mkdir(dir_path)
+    
+    metrics_path = dir_path+ '/metrics_stat_{}.xlsx'.format(args.file_name)
+    weights_path = dir_path+'/weights_stat_{}.xlsx'.format(args.file_name)
+    genotypes_path = dir_path+'/genotypes_stat_{}.xlsx'.format(args.file_name)    
+    
+    print(genotypes_path) 
+    
 
-    errors_dict = {'train_acc_1': [], 'train_loss': [], 'valid_acc_1': [], 'valid_loss': []}
+    errors_dict = {'train_acc_1': [], 'train_loss': [], 'valid_acc_1': [], 'valid_loss': [],
+                   'train_acc_5': [], 'valid_acc_5':[]}
 
     for epoch in range(args.epochs):
         if args.adas:
@@ -265,6 +288,8 @@ def main():
         errors_dict['train_loss'].append(train_obj)
         errors_dict['valid_acc_1'].append(valid_acc_1)
         errors_dict['valid_loss'].append(valid_obj)
+        errors_dict['valid_acc_5'].append(valid_acc_5)
+        errors_dict['train_acc_5'].append(train_acc_5)
         
         # update network metrics (knowledge gain, condition mapping, etc)
         if args.adas:
@@ -288,6 +313,14 @@ def main():
         # save model parameters
         save_model = model.module if is_multi_gpu else model
         utils.save(save_model, os.path.join(args.save, 'weights.pt'))
+             
+        """
+        ADDED BY LOUIS:
+        """
+        # save errors_dict to pickle file
+        with open(dir_path + '/errors_dict.pkl', 'wb') as f:
+            pickle.dump(errors_dict, f)
+    
 
 def train(epoch, train_queue, valid_queue, model, architect, criterion, optimizer, lr):
     global is_multi_gpu
@@ -434,17 +467,15 @@ def infer(valid_queue, model, criterion):
 def write_data(epoch, net_metrics, lr_metrics, weights_normal, weights_reduce, genotype,
                perform_stat, arch_stat, genotype_stat, metrics_path, weights_path, genotypes_path):
     # genotype
-    if epoch % 5 == 0 or epoch == args.epochs - 1:
-        genotype_stat['epoch_{}'.format(epoch)] = [genotype]
-        genotypes_df = pd.DataFrame(data=genotype_stat)
-        if os.path.isdir(genotypes_path) is not True: 
-             os.mkdir(genotypes_path)
-        genotypes_df.to_excel(genotypes_path)
+    #if epoch % 5 == 0 or epoch == args.epochs - 1:
+    genotype_stat['epoch_{}'.format(epoch)] = [genotype]
+    genotypes_df = pd.DataFrame(data=genotype_stat)
+    genotypes_df.to_excel(genotypes_path)
 
     # io metrics
     perform_stat['S_epoch_{}'.format(epoch)] = net_metrics
-    perform_stat['out_S_epoch_{}'.format(epoch)] = net_metrics.output_channel_S
-    perform_stat['fc_S_epoch_{}'.format(epoch)] = net_metrics.fc_S
+    #perform_stat['out_S_epoch_{}'.format(epoch)] = net_metrics.output_channel_S
+    #perform_stat['fc_S_epoch_{}'.format(epoch)] = net_metrics.fc_S
     # perform_stat['in_rank_epoch_{}'.format(epoch)] = net_metrics.input_channel_rank
     # perform_stat['out_rank_epoch_{}'.format(epoch)] = net_metrics.output_channel_rank
     # perform_stat['fc_rank_epoch_{}'.format(epoch)] = net_metrics.fc_rank
@@ -463,33 +494,33 @@ def write_data(epoch, net_metrics, lr_metrics, weights_normal, weights_reduce, g
     arch_stat['normal_none_epoch{}'.format(epoch)] = weights_normal[:, 0]
     arch_stat['normal_skip_connect_epoch{}'.format(epoch)] = weights_normal[:, 1]
     arch_stat['normal_sep_conv1_3x3_epoch{}'.format(epoch)] = weights_normal[:, 2]
-    #arch_stat['normal_sep_conv1_5x5_epoch{}'.format(epoch)] = weights_normal[:, 3]
-    #arch_stat['normal_sep_conv1_7x7_epoch{}'.format(epoch)] = weights_normal[:, 4]
-    #arch_stat['normal_sep_conv2_3x3_epoch{}'.format(epoch)] = weights_normal[:, 5]
-    #arch_stat['normal_sep_conv2_5x5_epoch{}'.format(epoch)] = weights_normal[:, 6]
-    #arch_stat['normal_sep_conv2_7x7_epoch{}'.format(epoch)] = weights_normal[:, 7]
-    #arch_stat['normal_sep_conv3_3x3_epoch{}'.format(epoch)] = weights_normal[:, 8]
-    #arch_stat['normal_sep_conv3_5x5_epoch{}'.format(epoch)] = weights_normal[:, 9]
-    #arch_stat['normal_sep_conv3_7x7_epoch{}'.format(epoch)] = weights_normal[:, 10]
-    #arch_stat['normal_sep_conv4_3x3_epoch{}'.format(epoch)] = weights_normal[:, 11]
-    #arch_stat['normal_sep_conv4_5x5_epoch{}'.format(epoch)] = weights_normal[:, 12]
-    #arch_stat['normal_sep_conv4_7x7_epoch{}'.format(epoch)] = weights_normal[:, 13]
+    arch_stat['normal_sep_conv1_5x5_epoch{}'.format(epoch)] = weights_normal[:, 3]
+    arch_stat['normal_sep_conv1_7x7_epoch{}'.format(epoch)] = weights_normal[:, 4]
+    arch_stat['normal_sep_conv2_3x3_epoch{}'.format(epoch)] = weights_normal[:, 5]
+    arch_stat['normal_sep_conv2_5x5_epoch{}'.format(epoch)] = weights_normal[:, 6]
+    arch_stat['normal_sep_conv2_7x7_epoch{}'.format(epoch)] = weights_normal[:, 7]
+    arch_stat['normal_sep_conv3_3x3_epoch{}'.format(epoch)] = weights_normal[:, 8]
+    arch_stat['normal_sep_conv3_5x5_epoch{}'.format(epoch)] = weights_normal[:, 9]
+    arch_stat['normal_sep_conv3_7x7_epoch{}'.format(epoch)] = weights_normal[:, 10]
+    arch_stat['normal_sep_conv4_3x3_epoch{}'.format(epoch)] = weights_normal[:, 11]
+    arch_stat['normal_sep_conv4_5x5_epoch{}'.format(epoch)] = weights_normal[:, 12]
+    arch_stat['normal_sep_conv4_7x7_epoch{}'.format(epoch)] = weights_normal[:, 13]
     
     # reduce
     arch_stat['reduce_none_epoch{}'.format(epoch)] = weights_reduce[:, 0]
     arch_stat['reduce_skip_connect_epoch{}'.format(epoch)] = weights_reduce[:, 1]
     arch_stat['reduce_sep_conv1_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 2]
-    #arch_stat['reduce_sep_conv1_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 3]
-    #arch_stat['reduce_sep_conv1_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 4]
-    #arch_stat['reduce_sep_conv2_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 5]
-    #arch_stat['reduce_sep_conv2_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 6]
-    #arch_stat['reduce_sep_conv2_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 7]
-    #arch_stat['reduce_sep_conv3_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 8]
-    #arch_stat['reduce_sep_conv3_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 9]
-    #arch_stat['reduce_sep_conv3_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 10]
-    #arch_stat['reduce_sep_conv4_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 11]
-    #arch_stat['reduce_sep_conv4_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 12]
-    #arch_stat['reduce_sep_conv4_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 13]
+    arch_stat['reduce_sep_conv1_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 3]
+    arch_stat['reduce_sep_conv1_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 4]
+    arch_stat['reduce_sep_conv2_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 5]
+    arch_stat['reduce_sep_conv2_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 6]
+    arch_stat['reduce_sep_conv2_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 7]
+    arch_stat['reduce_sep_conv3_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 8]
+    arch_stat['reduce_sep_conv3_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 9]
+    arch_stat['reduce_sep_conv3_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 10]
+    arch_stat['reduce_sep_conv4_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 11]
+    arch_stat['reduce_sep_conv4_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 12]
+    arch_stat['reduce_sep_conv4_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 13]
 
     # write weights data to xls file
     weights_df = pd.DataFrame(data=arch_stat)

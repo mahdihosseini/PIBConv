@@ -17,18 +17,20 @@ OPS = {
     'none': lambda C, stride, affine: Zero(stride),
     'skip_connect': lambda C, stride, affine: Identity() if stride == 1 else FactorizedReduce(C, C, affine=affine),
     'sep_conv1_3x3': lambda C, stride, affine: SepConvInverted1 (C, C, 3, stride, 1, affine=affine),
-    #'sep_conv1_5x5': lambda C, stride, affine: SepConvInverted1 (C, C, 5, stride, 2, affine=affine),
-    #'sep_conv1_7x7': lambda C, stride, affine: SepConvInverted1 (C, C, 7, stride, 3, affine=affine),
-    #'sep_conv2_3x3': lambda C, stride, affine: SepConvInverted2 (C, C, 3, stride, 1, affine=affine),
-    #'sep_conv2_5x5': lambda C, stride, affine: SepConvInverted2 (C, C, 5, stride, 2, affine=affine),
-    #'sep_conv2_7x7': lambda C, stride, affine: SepConvInverted2 (C, C, 7, stride, 3, affine=affine),
-    #'sep_conv3_3x3': lambda C, stride, affine: SepConvInverted3 (C, C, 3, stride, 1, affine=affine),
-    #'sep_conv3_5x5': lambda C, stride, affine: SepConvInverted3 (C, C, 5, stride, 2, affine=affine),
-    #'sep_conv3_7x7': lambda C, stride, affine: SepConvInverted3 (C, C, 7, stride, 3, affine=affine),
-    #'sep_conv4_3x3': lambda C, stride, affine: SepConvInverted4 (C, C, 3, stride, 1, affine=affine),
-    #'sep_conv4_5x5': lambda C, stride, affine: SepConvInverted4 (C, C, 5, stride, 2, affine=affine),
-    #'sep_conv4_7x7': lambda C, stride, affine: SepConvInverted4 (C, C, 7, stride, 3, affine=affine),
+    'sep_conv1_5x5': lambda C, stride, affine: SepConvInverted1 (C, C, 5, stride, 2, affine=affine),
+    'sep_conv1_7x7': lambda C, stride, affine: SepConvInverted1 (C, C, 7, stride, 3, affine=affine),
+    'sep_conv2_3x3': lambda C, stride, affine: SepConvInverted2 (C, C, 3, stride, 1, affine=affine),
+    'sep_conv2_5x5': lambda C, stride, affine: SepConvInverted2 (C, C, 5, stride, 2, affine=affine),
+    'sep_conv2_7x7': lambda C, stride, affine: SepConvInverted2 (C, C, 7, stride, 3, affine=affine),
+    'sep_conv3_3x3': lambda C, stride, affine: SepConvInverted3 (C, C, 3, stride, 1, affine=affine),
+    'sep_conv3_5x5': lambda C, stride, affine: SepConvInverted3 (C, C, 5, stride, 2, affine=affine),
+    'sep_conv3_7x7': lambda C, stride, affine: SepConvInverted3 (C, C, 7, stride, 3, affine=affine),
+    'sep_conv4_3x3': lambda C, stride, affine: SepConvInverted4 (C, C, 3, stride, 1, affine=affine),
+    'sep_conv4_5x5': lambda C, stride, affine: SepConvInverted4 (C, C, 5, stride, 2, affine=affine),
+    'sep_conv4_7x7': lambda C, stride, affine: SepConvInverted4 (C, C, 7, stride, 3, affine=affine),
 }
+
+
 class LayerNorm(nn.Module):
     """ LayerNorm that supports two data formats: channels_last (default) or channels_first. 
     The ordering of the dimensions in the inputs. channels_last corresponds to inputs with 
@@ -203,7 +205,6 @@ class SepConvInverted4 (nn.Module):
 
     def __init__(self, C_in, C_out, kernel_size, stride, padding, affine=True):
         super(SepConvInverted4, self).__init__()
-
 
         layers = []
 
