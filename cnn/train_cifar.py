@@ -20,6 +20,7 @@ parser = argparse.ArgumentParser("cifar")
 ####################
 # Model details
 parser.add_argument('--arch', type=str, default='DARTS', help='which architecture to use')
+#be careful with this. 
 parser.add_argument('--layers', type=int, default=20, help='total number of layers')
 parser.add_argument('--init_channels', type=int, default=36, help='num of init channels')
 ####################
@@ -47,7 +48,9 @@ parser.add_argument('--save', type=str, default='EXP', help='experiment name')
 parser.add_argument('--seed', type=int, default=0, help='random seed')
 args = parser.parse_args()
 
-args.save = 'Eval-{}-data-{}-arch-{}-{}'.format(args.save, args.dataset, args.arch, time.strftime("%Y%m%d-%H%M%S"))
+## LOUIS CHANGED##
+args.save = 'Eval-{}-arch-{}-{}'.format(args.save, args.arch, time.strftime("%Y%m%d-%H%M%S"))
+#args.save = 'Eval-{}-data-{}-arch-{}-{}'.format(args.save, args.dataset, args.arch, time.strftime("%Y%m%d-%H%M%S"))
 utils.create_exp_dir(args.save, scripts_to_save=glob.glob('*.py'))
 
 log_format = '%(asctime)s %(message)s'
@@ -85,6 +88,7 @@ def main():
     model = model.cuda()
 
     logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
+    # utils.get_channel_size(args.save, model)
 
     criterion = nn.CrossEntropyLoss()
     criterion = criterion.cuda()
@@ -138,7 +142,7 @@ def train(train_queue, model, criterion, optimizer):
 
     for step, (input, target) in enumerate(train_queue):
         input = Variable(input).cuda()
-        target = Variable(target).cuda(async=True)
+        target = Variable(target).cuda(non_blocking=True)
 
         optimizer.zero_grad()
         logits, logits_aux = model(input)
@@ -171,7 +175,7 @@ def infer(valid_queue, model, criterion):
     with torch.no_grad():
         for step, (input, target) in enumerate(valid_queue):
             input = Variable(input, volatile=True).cuda()
-            target = Variable(target, volatile=True).cuda(async=True)
+            target = Variable(target, volatile=True).cuda(non_blocking=True)
 
             logits, _ = model(input)
             loss = criterion(logits, target)
