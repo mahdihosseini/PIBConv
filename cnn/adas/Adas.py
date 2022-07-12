@@ -12,7 +12,7 @@ mod_name = vars(sys.modules[__name__])['__name__']
 if 'adas.' in mod_name:
     from .metrics import Metrics
 else:
-    from .optim.metrics import Metrics
+    from optim.metrics import Metrics
 
 
 class Adas(Optimizer):

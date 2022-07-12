@@ -1,10 +1,8 @@
 import sys
-import os 
 import genotypes
 from graphviz import Digraph
 
-os.environ["PATH"] += os.pathsep + '/fs2/comm/kpgrp/mhosseini/venvs/venv-csearch/lib/python3.9/site-packages/graphviz'
-print(os.environ["PATH"])
+
 def plot(genotype, filename):
     g = Digraph(
         format='pdf',

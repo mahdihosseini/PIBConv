@@ -4,19 +4,13 @@ Genotype = namedtuple('Genotype', 'normal normal_concat reduce reduce_concat')
 
 PRIMITIVES = [
     'none',
+    'max_pool_3x3',
+    'avg_pool_3x3',
     'skip_connect',
-    'sep_conv1_3x3',
-    'sep_conv1_5x5',
-    'sep_conv1_7x7',
-    'sep_conv2_3x3',
-    'sep_conv2_5x5',
-    'sep_conv2_7x7',
-    'sep_conv3_3x3',
-    'sep_conv3_5x5',
-    'sep_conv3_7x7',
-    'sep_conv4_3x3',
-    'sep_conv4_5x5',
-    'sep_conv4_7x7',
+    'sep_conv_3x3',
+    'sep_conv_5x5',
+    'dil_conv_3x3',
+    'dil_conv_5x5'
 ]
 
 NASNet = Genotype(
@@ -189,76 +183,3 @@ DARTS_ADP_N4 = Genotype(
     ],
     reduce_concat=range(2, 6)
 )
-
-CSearch_CIFAR10_ADAS_n3_l3 = Genotype(
-    normal=[('sep_conv1_3x3', 0), 
-            ('skip_connect', 1), 
-            ('sep_conv1_3x3', 2), 
-            ('sep_conv4_3x3', 0), 
-            ('sep_conv4_3x3', 2), 
-            ('sep_conv4_3x3', 1)], 
-    normal_concat=range(2, 5), 
-    reduce=[('sep_conv4_7x7', 1), 
-            ('sep_conv2_5x5', 0), 
-            ('sep_conv4_7x7', 1), 
-            ('sep_conv4_5x5', 0), 
-            ('sep_conv4_3x3', 0), 
-            ('sep_conv4_5x5', 3)], 
-    reduce_concat=range(2, 5))
-
-CSearch_CIFAR10_SGD_n3_l3_stem = Genotype(
-    normal=[('sep_conv4_3x3', 0), 
-            ('skip_connect', 1), 
-            ('sep_conv4_3x3', 0), 
-            ('sep_conv1_5x5', 1), 
-            ('sep_conv4_5x5', 0), 
-            ('sep_conv1_3x3', 1)], 
-    normal_concat=range(2, 5), 
-    reduce=[('skip_connect', 1), 
-            ('sep_conv1_5x5', 0), 
-            ('skip_connect', 1), 
-            ('sep_conv4_5x5', 2), 
-            ('sep_conv4_5x5', 1), 
-            ('sep_conv4_7x7', 2)], 
-    reduce_concat=range(2, 5))
-
-CSearch_CIFAR10_RMSGD_n4_l4_stem = Genotype(
-    normal=[('sep_conv3_5x5', 1), 
-            ('sep_conv1_5x5', 0), 
-            ('sep_conv1_3x3', 1), 
-            ('sep_conv1_3x3', 0), 
-            ('sep_conv3_7x7', 1), 
-            ('sep_conv1_5x5', 0), 
-            ('sep_conv1_7x7', 1), 
-            ('sep_conv1_3x3', 0)], 
-    normal_concat=range(2, 6), 
-    reduce=[('sep_conv4_5x5', 1), 
-            ('sep_conv1_5x5', 0), 
-            ('sep_conv4_5x5', 1), 
-            ('sep_conv4_5x5', 2), 
-            ('sep_conv4_7x7', 1), 
-            ('sep_conv4_3x3', 2), 
-            ('sep_conv4_3x3', 1), 
-            ('sep_conv4_5x5', 2)], 
-    reduce_concat=range(2, 6))
-
-CSearch_CIFAR10_SGD_n4_l4_stem = Genotype(
-    normal=[('sep_conv1_5x5', 1), 
-            ('sep_conv1_5x5', 0), 
-            ('sep_conv1_3x3', 1), 
-            ('sep_conv4_3x3', 0), 
-            ('sep_conv1_7x7', 1), 
-            ('sep_conv4_3x3', 3), 
-            ('sep_conv1_3x3', 1), 
-            ('sep_conv1_3x3', 2)], 
-    normal_concat=range(2, 6), 
-    reduce=[('sep_conv4_7x7', 1), 
-            ('sep_conv2_5x5', 0), 
-            ('sep_conv4_5x5', 1), 
-            ('sep_conv1_3x3', 0), 
-            ('sep_conv4_3x3', 1), 
-            ('sep_conv4_5x5', 2), 
-            ('sep_conv4_5x5', 1), 
-            ('sep_conv4_3x3', 2)], 
-    reduce_concat=range(2, 6))
- 

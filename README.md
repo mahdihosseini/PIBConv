@@ -1,4 +1,5 @@
-# ConvSearch
+# Adaptive DARTS
+
 ## Datasets
 In `data` folder:
 - CV datasets: CIFAR-10, CIFAR-100
