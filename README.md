@@ -25,11 +25,11 @@ network is able to better detect distinctive features of target
 objects compared to DARTS.
 
 ## Highlights
-**[C1.]** We present an ***incremental experiment procedure*** to
+**[C1.]** We present an ***incremental experiment procedure*** depicted in Fig.1 to
 evaluate how design components from `ConvNeXt` impact the
 performance of `DARTS` by redesigning its search space.
 
-**[C2.]** We introduce a ***Pseudo-Inverted Bottleneck block*** to
+**[C2.]** We introduce a ***Pseudo-Inverted Bottleneck block*** shown in Fig 2 (c) to
 implement an inverted bottleneck structure while minimizing
 model footprint and computations. This outperforms vanilla
 `DARTSV2` with *lower number of layers*, *parameter count*, and
@@ -55,46 +55,17 @@ Block (Cinv = C × 4); (c) Pseudo-Inverted Bottleneck Cell
 </div>
 
 
-## Datasets
-- CV datasets: CIFAR-10
+## Environment Setup
+- Required Computer Vision datasets: CIFAR-10
+  - We used CIFAR-10 for both architecture searching and training from scratch
+- Requird Modules in `requirements.txt`
 
 ## Methodology
-This is the first phase. Seaching code: `cnn/train_search_rmsgd.py`
-Need to specify:
-- Dataset to search on
-- Training options like optimizer, learning rates, batch size, etc
-- Model architecture details like init channel size, # layers, # nodes, etc.
+- The following adaptations from ConvNeXt and Swin Transformer are made:
+  - Replace ReLU with GeLU: *boosts accuracy by 0.12%*
+  - Replacing BatchNorm with LayerNorm: *accuracy degradation*
+  - Adapting the ConvNeXt Block: 
+    1) Reducing num. of activation and normalization layers
+    2) Adapting to an inverted bottleneck structure (from [MobileNetV2](https://arxiv.org/abs/1801.04381))
+    3) Moving up the depthwise separable conv. layer to facilitate training with large kernel size.
 
-
-Example (To search for our final genotype -- `NEWCONV_design_cin4_cifar10_DARTSsettings` on `CIFAR-10`):
-```
-cd ConvSearch/cnn
-python .py \
---dataset ADP-Release1 --image_size 64 \
---adas --scheduler_beta 0.98 \
---learning_rate 0.175 --batch_size 32 \
---layers 4 --node 4 \
---unrolled \
---file_name adas_ADP-Release1_size_64_lr_0.175_beta_0.98_layer_4_node_4_unrolled
-```
-
-When searching is finished, you need to copy/paste the generated *genotype* into `cnn/genotypes.py` and name it, in order to continue the following step.
-
-## Evaluation
-This is the second phase. Train the searched architecture from scratch. Code: `cnn/train_cifar.py`, `cnn/train_cpath.py`. Need to speify:
-- Dataset to train on
-  - In `cnn/train_cifar.py`, pass argument `--cifar100` to train on CIFAR100; otherwise CIFAR10 is used.
-  - In `cnn/train_cpath.py`, pass argument `--dataset $DATASET` where `$DATASET` can be either ADP, BCSS, BACH, or OS.
-- Model architecture to train. Pass argument `--arch $MODEL` where `$MODEL` is the *genotype* name stored in `cnn/genotypes.py`.
-- Other model details including # layers, # init channels.
-- Training options including batch size, learning rate, etc.
-
-Example (to train DARTS_ADP_N4 on ADP):
-```
-cd path_to_this_repo/cnn
-python train_cpath.py \
---dataset ADP --image_size 272 \
---arch DARTS_ADP_N4 --layers 4 \
---batch_size 96 --epochs 600 \
---auxiliary --cutout 
-```
