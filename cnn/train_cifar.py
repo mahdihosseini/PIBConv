@@ -20,6 +20,7 @@ parser = argparse.ArgumentParser("cifar")
 ####################
 # Model details
 parser.add_argument('--arch', type=str, default='DARTS', help='which architecture to use')
+#be careful with this. 
 parser.add_argument('--layers', type=int, default=20, help='total number of layers')
 parser.add_argument('--init_channels', type=int, default=36, help='num of init channels')
 ####################
@@ -87,6 +88,7 @@ def main():
     model = model.cuda()
 
     logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
+    # utils.get_channel_size(args.save, model)
 
     criterion = nn.CrossEntropyLoss()
     criterion = criterion.cuda()
@@ -116,18 +118,22 @@ def main():
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, float(args.epochs))
 
+    valid_acc_max = -1000
     for epoch in range(args.epochs):
-        scheduler.step()
+        
         logging.info('epoch %d lr %e', epoch, scheduler.get_lr()[0])
         model.drop_path_prob = args.drop_path_prob * epoch / args.epochs
 
         train_acc, train_obj = train(train_queue, model, criterion, optimizer)
         logging.info('train_acc %f', train_acc)
+        scheduler.step()
 
         valid_acc, valid_obj = infer(valid_queue, model, criterion)
         logging.info('valid_acc %f', valid_acc)
 
-        utils.save(model, os.path.join(args.save, 'weights.pt'))
+        if (valid_acc > valid_acc_max):
+            utils.save(model, os.path.join(args.save, 'weights.pt'))
+            valid_acc_max = valid_acc
         
     logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
 

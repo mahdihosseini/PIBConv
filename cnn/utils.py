@@ -12,6 +12,7 @@ from torch.utils.data import Dataset
 from ADP_utils.classesADP import classesADP
 from typing import Any
 import pickle
+import re
 
 
 class AverageMeter(object):
@@ -705,3 +706,35 @@ def create_exp_dir(path, scripts_to_save=None):
         for script in scripts_to_save:
             dst_file = os.path.join(path, 'scripts', os.path.basename(script))
             shutil.copyfile(script, dst_file)
+
+
+def get_channel_size(path, model):
+    f_cell = os.path.join(path, 'cell_info.txt')
+    with open(f_cell, 'a') as fh:
+        for i, cell in enumerate(model.cells):
+            fh.write(f"{i} Cell Info: {cell}")
+            fh.write(f"----------------------\n Intermidery Tensors ----------------------")
+            #for index,op in enumerate(cell.ops):
+                 
+                      
+    f_layer = os.path.join(path, 'layer_info.txt')
+    cell_mem = np.zeros(len(model.cells))
+    cell_name_pat = r"cells\.([0-9]+)\..*"
+    
+    for name, v in model.named_parameters():
+        m = re.match(cell_name_pat, name)
+        print(f"match {m}")
+        if m is not None:
+            cell_id = int(m.group(1))
+            print(f"cell_id {cell_id}")
+            cell_mem[cell_id] += np.prod(v.size())/1e6
+    
+    with open(f_layer, 'a') as fh:
+        for i in range(0, len(model.cells)):
+            fh.write(f"Cell{i} mem_size: {cell_mem[i]} \n")
+    
+    # 
+    #     fh.write(f"param name:{name}    shape:{v.size()}    mem:{np.prod(v.size())/1e6}")
+      
+
+    

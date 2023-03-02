@@ -71,10 +71,10 @@ class Network(nn.Module):
 
         C_curr = stem_multiplier * C
         self.stem = nn.Sequential(
-            nn.Conv2d(3, C_curr, 3, padding=1, bias=False),
-            #nn.BatchNorm2d(C_curr)
+            # nn.Conv2d(3, C_curr, 3, padding=1, bias=False),
+            # nn.BatchNorm2d(C_curr)
             
-            #nn.Conv2d(3, C_curr, 4, stride=4,padding=1, bias=False),
+            nn.Conv2d(3, C_curr, 4, stride=4,padding=1, bias=False),
             LayerNorm(C_curr, data_format="channels_first")
         )
 
@@ -92,7 +92,8 @@ class Network(nn.Module):
             reduction_prev = reduction
             self.cells += [cell]
             C_prev_prev, C_prev = C_prev, multiplier * C_curr
-
+            
+        
         self.global_pooling = nn.AdaptiveAvgPool2d(1)
         self.classifier = nn.Linear(C_prev, num_classes)
 

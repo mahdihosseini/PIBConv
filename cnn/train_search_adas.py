@@ -65,6 +65,7 @@ parser.add_argument('--gumbel', action='store_true', default=False, help='use or
 parser.add_argument('--tau_max', type=float, default=10.0, help='initial tau')
 parser.add_argument('--tau_min', type=float, default=1.0, help='minimum tau')
 # Adas optimizer
+parser.add_argument('--rmsgd', action='store_true', default=False, help='DO NOT SPECIFY THIS. HACK TO RUN SGD')
 parser.add_argument('--adas', action='store_true', default=False, help='whether or not to use adas optimizer')
 parser.add_argument('--scheduler_beta', type=float, default=0.98, help='beta for lr scheduler')
 parser.add_argument('--scheduler_p', type=int, default=1, help='p for lr scheduler')

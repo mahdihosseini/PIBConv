@@ -47,9 +47,9 @@ parser.add_argument('--adp_level', type=str, default='L3', help='ADP level')
 #################### 
 # Training details
 parser.add_argument('--gpu', type=str, default='0', help='gpu device id')
-parser.add_argument('--batch_size', type=int, default=32, help='batch size')
+parser.add_argument('--batch_size', type=int, default=64, help='batch size')
 parser.add_argument('--epochs', type=int, default=50, help='num of training epochs')
-parser.add_argument('--learning_rate', type=float, default=0.175, help='init learning rate')
+parser.add_argument('--learning_rate', type=float, default=0.025, help='init learning rate')
 parser.add_argument('--learning_rate_min', type=float, default=0.001, help='min learning rate')
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
 parser.add_argument('--weight_decay', type=float, default=3e-4, help='weight decay')
@@ -242,14 +242,14 @@ def main():
     architect = Architect(model, criterion, args)
         
 
-    # if not args.adas:
-    #     # record probing metrics
-    #     arch_parameters = model.module.arch_parameters() if is_multi_gpu else model.arch_parameters()
-    #     arch_params = list(map(id, arch_parameters))
-    #     model_parameters = model.module.parameters() if is_multi_gpu else model.parameters()
-    #     model_params = filter(lambda p: id(p) not in arch_params, model_parameters)
+    if not args.adas and not args.rmsgd:
+        # record probing metrics
+        arch_parameters = model.module.arch_parameters() if is_multi_gpu else model.arch_parameters()
+        arch_params = list(map(id, arch_parameters))
+        model_parameters = model.module.parameters() if is_multi_gpu else model.parameters()
+        model_params = filter(lambda p: id(p) not in arch_params, model_parameters)
 
-    #     metrics = Metrics(params=list(model_params))
+        metrics = Metrics(params=list(model_params))
     
         
 
@@ -286,7 +286,7 @@ def main():
             lr = optimizer.lr_vector
         elif args.rmsgd:
             lr = optimizer.lr_vector
-            logging.info('epoch %d lr %e', epoch, lr)
+            #logging.info('epoch %d lr %e', epoch, lr)
         else:
             scheduler.step()
             lr = scheduler.get_lr()[0]
