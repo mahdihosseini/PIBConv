@@ -35,6 +35,26 @@ model footprint and computations. This outperforms vanilla
 `DARTSV2` with *lower number of layers*, *parameter count*, and
 *GMACs*.
 
+<div align="center">
+<a align="center">
+  <img alt="roadmap" src="Figures/methodology_v2.png" width="50%" height="40%"></img>
+  <br>
+  <em>Fig. 1: Roadmap of the incremental augmentations along with their corresponding accuracies and
+methodologies.</em>
+</a>
+<br><br>
+<a align="center">
+<img alt="conv1" src="Figures/convnextblk_norm.png" width="20%" height="20%" hspace="20"></img>
+<img alt="conv2" src="Figures/darts_sepconvblk_norm.png" width="20%" height="20%" hspace="10"></img>
+<img alt="conv3" src="Figures/newconvblk_norm.png" width="20%" height="20%" hspace="10"></img>
+<br>
+<em> Fig. 2: Convolution Blocks : (a) DARTS Separable Convolution Block; (b) Inverted Bottleneck ConvNeXt Convolution
+Block (Cinv = C × 4); (c) Pseudo-Inverted Bottleneck Cell
+(Cinv = C × 2)</em>
+</a>
+</div>
+
+
 ## Datasets
 - CV datasets: CIFAR-10
 
