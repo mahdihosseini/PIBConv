@@ -56,7 +56,7 @@ methodologies.</em>
 <div align="left">
 <em> Fig. 2: Convolution Blocks : (a) DARTS Separable Convolution Block; (b) Inverted Bottleneck ConvNeXt Convolution
 Block (Cinv = C × 4); (c) Pseudo-Inverted Bottleneck Cell
-(Cinv = C × 2)</em>
+</em>
 </div>
 
 
@@ -69,15 +69,15 @@ Block (Cinv = C × 4); (c) Pseudo-Inverted Bottleneck Cell
 
 ## Methodology
 - Adaptation made towards convolutional block:
-  - Replace ReLU with GeLU: *boosts accuracy by ***0.12%*** *
-  - Replacing BatchNorm with LayerNorm: *accuracy degradation*
+  - Replace ReLU with GeLU
+  - Replacing BatchNorm with LayerNorm
   - Adapting the ConvNeXt Block: 
     1) Reducing num. of activation and normalization layers
-    2) Adapting to an inverted bottleneck structure (from [[MobileNetV2](https://arxiv.org/abs/1801.04381)])
+    2) Adapting to an inverted bottleneck structure
     3) Moving up the depthwise separable conv. layer to facilitate training with large kernel size
  - Best accuracy-GMAC trade-off:
     - Given the equations in the Table 1, we choose ***F=2***. 
-      Our Pseudo-Inverted Bottleneck block has approximately ***0.63 times*** the number of weights as the ConvNeXt block, *boosting accuracy by ***0.4%*** *
+      Our Pseudo-Inverted Bottleneck block has approximately ***0.63 times*** the number of weights as the ConvNeXt block
 
 
 Metrics | ConvNeXt | Pseudo-Inverted Bottleneck 
@@ -86,8 +86,10 @@ Num. of Weights per Block | $2F C^2 + K^2C$ | $(F + 1)C^2 + 2K^2C$
 
 
 
-Define $C$ = input/output Channel size; $C_{inv}$ = input/output Channel size
-       $F$ = $C_{inv} / C$ inverted bottleneck ratio for the first point-wise convolution
+Define:
+- $C$ = input/output channel size
+- $C_{inv}$ = inverted bottleneck channel size
+- $F$ = $C_{inv} / C$ inverted bottleneck ratio for the first point-wise convolution
 
 
 
@@ -116,7 +118,7 @@ Then, our proposed genotype is shown in Fig 3.:
 </div>
     
 ### Phase II -- Evaluation
-To evaluate our final genotype at multiple eval. layers, run the command below with desired layer count. (*Same hyperparameter settings as in **Searching Phase** are commented out.*)
+To evaluate our final genotype at multiple eval. layers, run the command below with desired layer count.
 ```
 cd cnn &&
 python train_cifar.py \
