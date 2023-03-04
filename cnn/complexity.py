@@ -10,14 +10,14 @@ def print_complexity(network):
     print('{:<30}  {:<8}'.format('Number of parameters: ', params))
 
 if __name__ == "__main__":
-    network = NetworkADP(
+    network = NetworkCIFAR(
         C=36, 
         num_classes=10, 
-        layers=15, 
-        auxiliary=True, 
-        genotype=NEWCONV_design_cin4_cifar10_DARTSsettings)
+        layers=20, 
+        auxiliary=False, 
+        genotype=DARTS_newconv_epoch50)
 
-    network.drop_path_prob = 0.2        # Hardcoded - value is only for functionality and should not change complexity at all
+    network.drop_path_prob = 0.2        # Placeholder - value is only for functionality and should not change complexity at all
     
     print_complexity(network)
 

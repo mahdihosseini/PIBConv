@@ -1,8 +1,4 @@
-from operator import index
 import os
-#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-#os.environ["CUDA_VISIBLE_DEVICES"] = "1,2,3"
-print("bruv")
 import sys
 import time
 import glob
@@ -11,13 +7,14 @@ import logging
 import argparse
 import numpy as np
 import pandas as pd
-import pickle
 import torch
 import torch.nn as nn
 import torch.utils
 import torch.nn.functional as F
 import torchvision.datasets as dset
 import torch.backends.cudnn as cudnn
+import pickle
+import gc
 
 from copy import deepcopy
 from numpy import linalg as LA
@@ -65,7 +62,6 @@ parser.add_argument('--gumbel', action='store_true', default=False, help='use or
 parser.add_argument('--tau_max', type=float, default=10.0, help='initial tau')
 parser.add_argument('--tau_min', type=float, default=1.0, help='minimum tau')
 # Adas optimizer
-parser.add_argument('--rmsgd', action='store_true', default=False, help='DO NOT SPECIFY THIS. HACK TO RUN SGD')
 parser.add_argument('--adas', action='store_true', default=False, help='whether or not to use adas optimizer')
 parser.add_argument('--scheduler_beta', type=float, default=0.98, help='beta for lr scheduler')
 parser.add_argument('--scheduler_p', type=int, default=1, help='p for lr scheduler')
@@ -111,6 +107,9 @@ else:
 is_multi_gpu = False
 
 def main():
+    gc.collect()
+    torch.cuda.empty_cache()
+
     global is_multi_gpu
 
     gpus = [int(i) for i in args.gpu.split(',')]
@@ -124,11 +123,6 @@ def main():
     else:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
         is_multi_gpu = True
-        
-    if args.layers <= 2: 
-        logging.info('Minimmum number of layers is 2')
-        sys.exit(1)
-        
     np.random.seed(args.seed)
     cudnn.benchmark = True
     torch.manual_seed(args.seed)
@@ -142,7 +136,7 @@ def main():
         train_transform, valid_transform = utils._data_transforms_cifar100(args)
         train_data = dset.CIFAR100(root=args.data, train=True, download=True, transform=train_transform)
     elif args.dataset == 'cifar10':
-        train_transform, valid_transform =  utils._data_transforms_cifar10(args)
+        train_transform, valid_transform = utils._data_transforms_cifar10(args)
         train_data = dset.CIFAR10(root=args.data, train=True, download=True, transform=train_transform)
     elif args.dataset == 'ADP-Release1':
         train_transform, valid_transform = utils._data_transforms_adp(args)
@@ -236,30 +230,17 @@ def main():
     performance_statistics = {}
     arch_statistics = {}
     genotype_statistics = {}
-    
-    index = 0
-    dir_path=r'../save_data'
- 
-    while(os.path.isdir(dir_path+str(index))):
-        index += 1
-        print(dir_path+str(index))
-        
-    
-    dir_path=dir_path+str(index)
-    
-    #make the new dir without overwriting previous data
+
+    # make new save dir (will raise error if already exists - so make sure to specify args.file_name)
+    dir_path = f'../save_data_{args.file_name}'
     os.mkdir(dir_path)
     
-    metrics_path = dir_path+ '/metrics_stat_{}.xlsx'.format(args.file_name)
-    weights_path = dir_path+'/weights_stat_{}.xlsx'.format(args.file_name)
-    genotypes_path = dir_path+'/genotypes_stat_{}.xlsx'.format(args.file_name)    
-    
-    print(genotypes_path) 
-    
+    metrics_path = dir_path + '/metrics_stat_{}.xlsx'.format(args.file_name)
+    weights_path = dir_path +'/weights_stat_{}.xlsx'.format(args.file_name)
+    genotypes_path = dir_path +'/genotypes_stat_{}.xlsx'.format(args.file_name)    
+    errors_dict = {'train_acc_1': [], 'train_loss': [], 'valid_acc_1': [], 'valid_loss': [], 'train_acc_5': [], 'valid_acc_5':[]}
 
-    errors_dict = {'train_acc_1': [], 'train_loss': [], 'valid_acc_1': [], 'valid_loss': [],
-                   'train_acc_5': [], 'valid_acc_5':[]}
-
+    # training
     for epoch in range(args.epochs):
         if args.adas:
             lr = optimizer.lr_vector
@@ -291,7 +272,7 @@ def main():
         errors_dict['valid_loss'].append(valid_obj)
         errors_dict['valid_acc_5'].append(valid_acc_5)
         errors_dict['train_acc_5'].append(train_acc_5)
-        
+
         # update network metrics (knowledge gain, condition mapping, etc)
         if args.adas:
             # AdaS: update learning rates
@@ -314,14 +295,10 @@ def main():
         # save model parameters
         save_model = model.module if is_multi_gpu else model
         utils.save(save_model, os.path.join(args.save, 'weights.pt'))
-             
-        """
-        ADDED BY LOUIS:
-        """
+
         # save errors_dict to pickle file
         with open(dir_path + '/errors_dict.pkl', 'wb') as f:
             pickle.dump(errors_dict, f)
-    
 
 def train(epoch, train_queue, valid_queue, model, architect, criterion, optimizer, lr):
     global is_multi_gpu
@@ -475,8 +452,8 @@ def write_data(epoch, net_metrics, lr_metrics, weights_normal, weights_reduce, g
 
     # io metrics
     perform_stat['S_epoch_{}'.format(epoch)] = net_metrics
-    #perform_stat['out_S_epoch_{}'.format(epoch)] = net_metrics.output_channel_S
-    #perform_stat['fc_S_epoch_{}'.format(epoch)] = net_metrics.fc_S
+    # perform_stat['out_S_epoch_{}'.format(epoch)] = net_metrics.output_channel_S
+    # perform_stat['fc_S_epoch_{}'.format(epoch)] = net_metrics.fc_S
     # perform_stat['in_rank_epoch_{}'.format(epoch)] = net_metrics.input_channel_rank
     # perform_stat['out_rank_epoch_{}'.format(epoch)] = net_metrics.output_channel_rank
     # perform_stat['fc_rank_epoch_{}'.format(epoch)] = net_metrics.fc_rank
@@ -490,39 +467,25 @@ def write_data(epoch, net_metrics, lr_metrics, weights_normal, weights_reduce, g
     metrics_df = pd.DataFrame(data=perform_stat)
     metrics_df.to_excel(metrics_path)
 
-    # alpha weights
+    # weights
     # normal
     arch_stat['normal_none_epoch{}'.format(epoch)] = weights_normal[:, 0]
-    arch_stat['normal_skip_connect_epoch{}'.format(epoch)] = weights_normal[:, 1]
-    arch_stat['normal_sep_conv1_3x3_epoch{}'.format(epoch)] = weights_normal[:, 2]
-    arch_stat['normal_sep_conv1_5x5_epoch{}'.format(epoch)] = weights_normal[:, 3]
-    arch_stat['normal_sep_conv1_7x7_epoch{}'.format(epoch)] = weights_normal[:, 4]
-    arch_stat['normal_sep_conv2_3x3_epoch{}'.format(epoch)] = weights_normal[:, 5]
-    arch_stat['normal_sep_conv2_5x5_epoch{}'.format(epoch)] = weights_normal[:, 6]
-    arch_stat['normal_sep_conv2_7x7_epoch{}'.format(epoch)] = weights_normal[:, 7]
-    arch_stat['normal_sep_conv3_3x3_epoch{}'.format(epoch)] = weights_normal[:, 8]
-    arch_stat['normal_sep_conv3_5x5_epoch{}'.format(epoch)] = weights_normal[:, 9]
-    arch_stat['normal_sep_conv3_7x7_epoch{}'.format(epoch)] = weights_normal[:, 10]
-    arch_stat['normal_sep_conv4_3x3_epoch{}'.format(epoch)] = weights_normal[:, 11]
-    arch_stat['normal_sep_conv4_5x5_epoch{}'.format(epoch)] = weights_normal[:, 12]
-    arch_stat['normal_sep_conv4_7x7_epoch{}'.format(epoch)] = weights_normal[:, 13]
-    
+    arch_stat['normal_max_epoch{}'.format(epoch)] = weights_normal[:, 1]
+    arch_stat['normal_avg_epoch{}'.format(epoch)] = weights_normal[:, 2]
+    arch_stat['normal_skip_epoch{}'.format(epoch)] = weights_normal[:, 3]
+    arch_stat['normal_sep_3_epoch{}'.format(epoch)] = weights_normal[:, 4]
+    arch_stat['normal_sep_5_epoch{}'.format(epoch)] = weights_normal[:, 5]
+    arch_stat['normal_dil_3_epoch{}'.format(epoch)] = weights_normal[:, 6]
+    arch_stat['normal_dil_5_epoch{}'.format(epoch)] = weights_normal[:, 7]
     # reduce
     arch_stat['reduce_none_epoch{}'.format(epoch)] = weights_reduce[:, 0]
-    arch_stat['reduce_skip_connect_epoch{}'.format(epoch)] = weights_reduce[:, 1]
-    arch_stat['reduce_sep_conv1_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 2]
-    arch_stat['reduce_sep_conv1_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 3]
-    arch_stat['reduce_sep_conv1_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 4]
-    arch_stat['reduce_sep_conv2_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 5]
-    arch_stat['reduce_sep_conv2_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 6]
-    arch_stat['reduce_sep_conv2_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 7]
-    arch_stat['reduce_sep_conv3_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 8]
-    arch_stat['reduce_sep_conv3_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 9]
-    arch_stat['reduce_sep_conv3_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 10]
-    arch_stat['reduce_sep_conv4_3x3_epoch{}'.format(epoch)] = weights_reduce[:, 11]
-    arch_stat['reduce_sep_conv4_5x5_epoch{}'.format(epoch)] = weights_reduce[:, 12]
-    arch_stat['reduce_sep_conv4_7x7_epoch{}'.format(epoch)] = weights_reduce[:, 13]
-
+    arch_stat['reduce_max_epoch{}'.format(epoch)] = weights_reduce[:, 1]
+    arch_stat['reduce_avg_epoch{}'.format(epoch)] = weights_reduce[:, 2]
+    arch_stat['reduce_skip_epoch{}'.format(epoch)] = weights_reduce[:, 3]
+    arch_stat['reduce_sep_3_epoch{}'.format(epoch)] = weights_reduce[:, 4]
+    arch_stat['reduce_sep_5_epoch{}'.format(epoch)] = weights_reduce[:, 5]
+    arch_stat['reduce_dil_3_epoch{}'.format(epoch)] = weights_reduce[:, 6]
+    arch_stat['reduce_dil_5_epoch{}'.format(epoch)] = weights_reduce[:, 7]
     # write weights data to xls file
     weights_df = pd.DataFrame(data=arch_stat)
     weights_df.to_excel(weights_path)

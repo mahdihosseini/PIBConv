@@ -6,7 +6,9 @@
 #EXPERIMENTS
 
 /cnn/Search*
-/Search* 
+/cnn/Eval*
+/Search*
+/save_data*
 
 #DATA
 /data

@@ -47,8 +47,8 @@ methodologies.</em>
 </div>
 
 <div align="center">
-<img alt="conv1" src="Figures/convnextblk_norm.png" width="20%" height="20%" hspace="20"></img>
-<img alt="conv2" src="Figures/darts_sepconvblk_norm.png" width="20%" height="20%" hspace="10"></img>
+<img alt="conv1" src="Figures/darts_sepconvblk_norm.png" width="20%" height="20%" hspace="10"></img>
+<img alt="conv2" src="Figures/convnextblk_norm.png" width="20%" height="20%" hspace="20"></img>
 <img alt="conv3" src="Figures/newconvblk_norm.png" width="20%" height="20%" hspace="10"></img>
 <br>
 </div>
@@ -99,12 +99,10 @@ cd cnn &&
 python train_search_adas.py \
 --dataset cifar10 --image_size 32 \
 --learning_rate 0.0025 \
---weight_decay 3e-4 \
---momentum 0.9\
 --batch_size 32 \
 --epochs 50 \
 --layers 8 --node 4 \
---unrolled \
+--unrolled
 ```
 Then, our proposed genotype is shown in Fig 3.:
 
@@ -121,8 +119,8 @@ Then, our proposed genotype is shown in Fig 3.:
 To evaluate our final genotype at multiple eval. layers, run the command below with desired layer count. (*Same hyperparameter settings as in **Searching Phase** are commented out.*)
 ```
 cd cnn &&
-python train_cifar.py 
---arch NEWCONV_RMSGD_N5_50EPOCH \ 
+python train_cifar.py \
+--arch DARTS_PseudoInvBn \
 --batch_size 96 --epoch 600 --layer 20 \
 --auxiliary --cutout
 ```

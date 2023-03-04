@@ -20,7 +20,6 @@ class Architect(object):
         self.model = model
         self.criterion = criterion
         self.adas = args.adas
-        self.rmsgd=args.rmsgd
 
         arch_parameters = self.model.module.arch_parameters() if self.is_multi_gpu else self.model.arch_parameters()
         self.optimizer = torch.optim.Adam(arch_parameters,
@@ -70,7 +69,7 @@ class Architect(object):
                               zip(torch.autograd.grad(loss, model_params), model_params)])
 
         # Adas
-        if self.rmsgd or self.adas:
+        if self.adas:
             iteration_p = 0
             offset_p = 0
             offset_dp = 0
@@ -78,10 +77,6 @@ class Architect(object):
             arch_params = list(map(id, arch_parameters))
             model_parameters = self.model.module.parameters() if self.is_multi_gpu else self.model.parameters()
             model_params = filter(lambda p: id(p) not in arch_params, model_parameters) 
-            
-            #print("===================")
-            #print(model_params.size())
-            #print("===================")
             for p in model_params:                      
                 p_length = np.prod(p.size())
                 lr = lr_vector[iteration_p]
@@ -93,7 +88,6 @@ class Architect(object):
                 iteration_p += 1
         # original DARTS
         else:
-
             model_theta.sub_(lr_vector, moment + dtheta)
         
         theta = torch.cat([arch_theta, model_theta])
@@ -151,7 +145,7 @@ class Architect(object):
             vector = [v.grad.data for v in unrolled_model_params]
         
         # Adas: use different etas for different w's
-        if self.adas or self.rmsgd:
+        if self.adas:
             for i, p in enumerate(vector):
                 p.mul_(lr[i])
 

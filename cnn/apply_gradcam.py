@@ -89,7 +89,7 @@ if __name__ == '__main__':
         num_classes=10, 
         layers=20, 
         auxiliary=True, 
-        genotype=NEWCONV_design_cin4_cifar10_DARTSsettings)
+        genotype=DARTS_newconv_epoch50)
     model.drop_path_prob = 0.2 
     # Choose the target layer you want to compute the visualization for.
     # Usually this will be the last convolutional layer in the model.
