@@ -1,9 +1,9 @@
-# ConvSearch: Pseudo-Inverted Bottleneck Convolution for DARTS Search Space
+# PIBConv: Pseudo-Inverted Bottleneck Convolution for DARTS Search Space
 
-**This work has been accepted to the 2023 IEEE International Conference on Acoustic, Speech and Signal Processing for oral presentation**
+**Accepted in the 2023 IEEE International Conference on Acoustic, Speech and Signal Processing (ICASSP) for oral presentation**
 
 Checkout our arXiv preprint [Paper](https://arxiv.org/abs/2301.01286)
-> A. Ahmadian, Y. Fei, L. S. P. Liu, K. N. Plataniotis, and M. S. Hosseini, ‘Pseudo-Inverted Bottleneck Convolution for DARTS Search Space’. arXiv, 2023.
+> A. Ahmadian*, Y. Fei*, L. S. P. Liu*, K. N. Plataniotis, and M. S. Hosseini, ‘Pseudo-Inverted Bottleneck Convolution for DARTS Search Space’. arXiv, 2023.
 
 
 ## Abstract
