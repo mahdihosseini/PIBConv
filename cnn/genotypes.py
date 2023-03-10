@@ -7,8 +7,8 @@ PRIMITIVES = [
     'max_pool_3x3',
     'avg_pool_3x3',
     'skip_connect',
-    'pseudo_inv_bn_3x3',
-    'pseudo_inv_bn_5x5',
+    'pib_conv_3x3',
+    'pib_conv_5x5',
     'dil_conv_3x3',
     'dil_conv_5x5'
 ]
@@ -186,25 +186,25 @@ DARTS_ADP_N4 = Genotype(
 
 DARTS_PseudoInvBn = Genotype(
     normal=[
-        ('pseudo_inv_bn_3x3', 0), 
-        ('pseudo_inv_bn_5x5', 1), 
-        ('pseudo_inv_bn_3x3', 0), 
-        ('pseudo_inv_bn_3x3', 2), 
-        ('pseudo_inv_bn_3x3', 2), 
-        ('pseudo_inv_bn_3x3', 1), 
-        ('pseudo_inv_bn_3x3', 1), 
-        ('pseudo_inv_bn_3x3', 3)
+        ('pib_conv_3x3', 0), 
+        ('pib_conv_5x5', 1), 
+        ('pib_conv_3x3', 0), 
+        ('pib_conv_3x3', 2), 
+        ('pib_conv_3x3', 2), 
+        ('pib_conv_3x3', 1), 
+        ('pib_conv_3x3', 1), 
+        ('pib_conv_3x3', 3)
     ], 
     normal_concat=range(2, 6), 
     reduce=[
         ('avg_pool_3x3', 0), 
-        ('pseudo_inv_bn_5x5', 1), 
+        ('pib_conv_5x5', 1), 
         ('avg_pool_3x3', 0), 
         ('dil_conv_5x5', 2), 
         ('avg_pool_3x3', 0), 
         ('skip_connect', 2), 
-        ('pseudo_inv_bn_3x3', 3), 
-        ('pseudo_inv_bn_3x3', 0)], 
+        ('pib_conv_3x3', 3), 
+        ('pib_conv_3x3', 0)], 
     reduce_concat=range(2, 6)
 )
 

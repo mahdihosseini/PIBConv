@@ -8,9 +8,9 @@ OPS = {
     'avg_pool_3x3': lambda C, stride, affine: nn.AvgPool2d(3, stride=stride, padding=1, count_include_pad=False),
     'max_pool_3x3': lambda C, stride, affine: nn.MaxPool2d(3, stride=stride, padding=1),
     'skip_connect': lambda C, stride, affine: Identity() if stride == 1 else FactorizedReduce(C, C, affine=affine),
-    'pseudo_inv_bn_3x3': lambda C, stride, affine: PseudoInvBn(C, C, 3, stride, 1, affine=affine),
-    'pseudo_inv_bn_5x5': lambda C, stride, affine: PseudoInvBn(C, C, 5, stride, 2, affine=affine),
-    'pseudo_inv_bn_7x7': lambda C, stride, affine: PseudoInvBn(C, C, 7, stride, 3, affine=affine),
+    'pib_conv_3x3': lambda C, stride, affine: PseudoInvBn(C, C, 3, stride, 1, affine=affine),
+    'pib_conv_5x5': lambda C, stride, affine: PseudoInvBn(C, C, 5, stride, 2, affine=affine),
+    'pib_conv_7x7': lambda C, stride, affine: PseudoInvBn(C, C, 7, stride, 3, affine=affine),
     'dil_conv_3x3': lambda C, stride, affine: DilConv(C, C, 3, stride, 2, 2, affine=affine),
     'dil_conv_5x5': lambda C, stride, affine: DilConv(C, C, 5, stride, 4, 2, affine=affine),
     'conv_7x1_1x7': lambda C, stride, affine: nn.Sequential(
