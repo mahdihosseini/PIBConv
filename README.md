@@ -1,28 +1,8 @@
-# PIBConv: Pseudo-Inverted Bottleneck Convolution for DARTS Search Space
+## PIBConv: Pseudo-Inverted Bottleneck Convolution for DARTS Search Space
 
-**Accepted in the 2023 IEEE International Conference on Acoustic, Speech and Signal Processing (ICASSP) for oral presentation**
+> A. Ahmadian*, Y. Fei*, L. S. P. Liu*, K. N. Plataniotis, and M. S. Hosseini, ‘Pseudo-Inverted Bottleneck Convolution for DARTS Search Space’. Accepted in ICASSP2023. 
 
 Checkout our arXiv preprint [Paper](https://arxiv.org/abs/2301.01286)
-> A. Ahmadian*, Y. Fei*, L. S. P. Liu*, K. N. Plataniotis, and M. S. Hosseini, ‘Pseudo-Inverted Bottleneck Convolution for DARTS Search Space’. arXiv, 2023.
-
-
-## Abstract
-
-Differentiable Architecture Search (DARTS) has attracted considerable attention as a gradient-based Neural Architecture
-Search (NAS) method. Since the introduction of DARTS,
-there has been little work done on adapting the action space
-based on state-of-art architecture design principles for CNNs.
-In this work, we aim to address this gap by incrementally augmenting the DARTS search space with micro-design changes
-inspired by ConvNeXt and studying the trade-off between accuracy, evaluation layer count, and computational cost. To this
-end, we introduce the Pseudo-Inverted Bottleneck conv block
-intending to reduce the computational footprint of the inverted
-bottleneck block proposed in ConvNeXt. Our proposed architecture is much less sensitive to evaluation layer count and
-outperforms a DARTS network with similar size significantly,
-at layer counts as small as 2. Furthermore, with less layers,
-not only does it achieve higher accuracy with lower GMACs
-and parameter count, GradCAM comparisons show that our
-network is able to better detect distinctive features of target
-objects compared to DARTS.
 
 ## Highlights
 **[C1.]** We present an ***incremental experiment procedure*** depicted in Fig.1 to
