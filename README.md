@@ -1,6 +1,6 @@
 ## PIBConv: Pseudo-Inverted Bottleneck Convolution for DARTS Search Space
 
-> A. Ahmadian*, Y. Fei*, L. S. P. Liu*, K. N. Plataniotis, and M. S. Hosseini, ‘Pseudo-Inverted Bottleneck Convolution for DARTS Search Space’. Accepted in ICASSP2023. 
+> A. Ahmadian*, L. S. P. Liu*, Y. Fei, K. N. Plataniotis, and M. S. Hosseini, ‘Pseudo-Inverted Bottleneck Convolution for DARTS Search Space’. Accepted in ICASSP2023. 
 
 Checkout our arXiv preprint [Paper](https://arxiv.org/abs/2301.01286)
 
