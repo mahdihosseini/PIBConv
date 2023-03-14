@@ -90,8 +90,8 @@ Then, our proposed genotype is shown in Fig 3.:
 
 <div align="center">
 <a align="center">
-<img alt="normal" src="Figures/normal.png" width="45%" height="30%" hspace="10"></img>
-<img alt="reduc" src="Figures/reduction.png" width="45%" height="30%"></img>
+<img alt="normal" src="Figures/normal-1.png" width="45%" height="30%" hspace="10"></img>
+<img alt="reduc" src="Figures/reduction-1.png" width="45%" height="30%"></img>
 <br>
 <em> Fig. 3:  Proposed Genotype: (a) Normal cell; (b) Reduction cell</em>
 </a>
